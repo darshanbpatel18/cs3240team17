@@ -1,0 +1,224 @@
+==========================
+
+Raw from assignment:
+
+<MiniRE-program> → begin <statement-list> end
+<statement-list> → <statement-list> <statement> | ε
+<statement> → ID := <exp> ;
+<statement> → replace REGEX with ASCII-STR in  <file-names> ;
+<file-names> →  <source-file>  -> <destination-file>
+<source-file> → ASCII-STR  
+<destination-file> → ASCII-STR
+<statement> → print ( <exp-list> ) ;
+<exp-list> → <exp-list> , <exp> | <exp>
+<exp>→ ID | INTNUM | ( <exp> ) | # <exp>
+<exp> → <exp> <bin-op> <exp>
+<exp> → find REGEX in  <file-name>
+<file-name> → ASCII-STR
+<bin-op> → + | - | * | / | union | inters
+<statement> → if ( <condition> ) { <statement-list> } else { <statement-list> }   // Bonus part 
+<statement> → while ( <condition> ) { <statement-list> }                // Bonus part 
+<condition> → <exp> <bool-op> <exp>                                           // Bonus part 
+<bool-op> → == | != | < | > | <= | >=                                                 // Bonus part 
+
+
+<reg-ex> → ' <rexp> '
+<rexp> → RE_CHAR <rexp>  |  <char-class> <rexp>  |  ε
+<rexp> → ( <rexp> )  |  <rexp> UNION <rexp>  |  <rexp> *  |  <rexp> +  |  <rexp> ?
+<char-class> →  .  |  [ <char-set> ]  |  [ ^ <char-set> ]
+<char-set> → CLS_CHAR  |  <range>  |  <char-set> <char-set>
+<range> → CLS_CHAR - CLS_CHAR
+
+
+Spaces, tabulations, line ends and carriage returns are considered white space and skipped.
+UNION is the | character representing the union of two (sub-) regular expressions.
+RE_CHAR is the union of two sets:
+1)  the ASCII printable characters (see http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters) other than space, \, *, +, ?, |, [, ], (, ), ., ' and "
+2)  escaped characters: \ (backslash space), \\, \*, \+, \?, \|, \[, \], \(, \), \., \' and \"
+CLS_CHAR is the union of two sets:
+1)  the ASCII printable characters (see http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters) other than \, ^, -, [ and ]
+2)  escaped characters: \\, \^, \-, \[ and \]
+
+
+============================
+
+Our modifications:
+
+<MiniRE-program> → begin <statement-list> end
+
+<<<<<<<<<<<<<<<<
+<statement-list> → <statement-list> <statement> | ε
+================
+<statement-list> → <statement> <statement-list> | ε
+>>>>>>>>>>>>>>>>
+
+<statement> → ID := <exp> ;
+<statement> → replace REGEX with ASCII-STR in  <file-names> ;
+
+<file-names> →  <source-file>  -> <destination-file>
+<source-file> → ASCII-STR  
+<destination-file> → ASCII-STR
+
+
+<statement> → print ( <exp-list> ) ;
+
+<<<<<<<<<<<<<<<<
+<exp-list> → <exp-list> , <exp> | <exp>
+================
+<exp-list> → <exp> <exp-list-p>
+<exp-list-p> → , <exp> <exp-list-p> | ε
+>>>>>>>>>>>>>>>>
+
+<exp> → ID | INTNUM | ( <exp> ) | # <exp>
+<exp> → find REGEX in  <file-name>
+
+<<<<<<<<<<<<<<<<
+<exp> → <exp> <bin-op> <exp>
+================
+<exp> → ID <bin-op> <exp>
+<exp> → INTNUM <bin-op> <exp>
+<exp> → ( <exp> ) <bin-op> <exp>
+<exp> → # <exp> <bin-op> <exp>
+<exp> → find REGEX in  <file-name> <bin-op> <exp>
+>>>>>>>>>>>>>>>>
+
+<file-name> → ASCII-STR
+<bin-op> → + | - | * | / | union | inters
+
+<reg-ex> → ' <rexp> '
+<rexp> → ε
+<rexp> → RE_CHAR <rexp>
+<rexp> → <char-class> <rexp>
+<rexp> → ( <rexp> )
+
+<<<<<<<<<<<<<<<<
+<rexp> → <rexp> *
+<rexp> → <rexp> +  
+<rexp> → <rexp> ?
+================
+<rexp> → <rexp-p>
+
+<rexp-p> → * <rexp-p> | ε
+<rexp-p> → + <rexp-p> | ε
+<rexp-p> → ? <rexp-p> | ε
+>>>>>>>>>>>>>>>>
+
+<<<<<<<<<<<<<<<<
+<rexp> → <rexp> UNION <rexp>
+================
+<rexp> → UNION <rexp>
+<rexp> → RE_CHAR <exp>  UNION <rexp>
+<rexp> → <char-class> <exp>  UNION <rexp>
+<rexp> → ( <rexp> )  UNION <rexp>
+<rexp> → <rexp-p>  UNION <rexp>
+>>>>>>>>>>>>>>>>
+
+<char-class> →  .  |  [ <char-set> ]  |  [ ^ <char-set> ]
+
+<<<<<<<<<<<<<<<<
+<char-set> → CLS_CHAR  |  <range>
+<char-set> → <char-set> <char-set>
+================
+<char-set> → CLS_CHAR <char-set-p> |  <range> <char-set-p>
+<char-set-p> → CLS_CHAR <char-set-p> |  <range> <char-set-p> | ε
+>>>>>>>>>>>>>>>>
+
+<range> → CLS_CHAR - CLS_CHAR
+
+
+
+========================================
+Final Grammar:
+
+<MiniRE-program> → begin <statement-list> end
+
+<statement-list> → <statement> <statement-list> | ε
+
+<statement> → ID := <exp> ;
+<statement> → replace REGEX with ASCII-STR in  <file-names> ;
+
+<file-names> →  <source-file>  -> <destination-file>
+<source-file> → ASCII-STR  
+<destination-file> → ASCII-STR
+
+
+<statement> → print ( <exp-list> ) ;
+
+<exp-list> → <exp> <exp-list-p>
+<exp-list-p> → , <exp> <exp-list-p> | ε
+
+<exp> → ID | INTNUM | ( <exp> ) | # <exp>
+<exp> → find REGEX in  <file-name>
+
+<exp> → ID <bin-op> <exp>
+<exp> → INTNUM <bin-op> <exp>
+<exp> → ( <exp> ) <bin-op> <exp>
+<exp> → # <exp> <bin-op> <exp>
+<exp> → find REGEX in  <file-name> <bin-op> <exp>
+
+<file-name> → ASCII-STR
+<bin-op> → + | - | * | / | union | inters
+
+<reg-ex> → ' <rexp> '
+<rexp> → ε
+<rexp> → RE_CHAR <rexp>
+<rexp> → <char-class> <rexp>
+<rexp> → ( <rexp> )
+
+<rexp> → <rexp-p>
+
+<rexp-p> → * <rexp-p> | ε
+<rexp-p> → + <rexp-p> | ε
+<rexp-p> → ? <rexp-p> | ε
+
+<rexp> → UNION <rexp>
+<rexp> → RE_CHAR <exp>  UNION <rexp>
+<rexp> → <char-class> <exp>  UNION <rexp>
+<rexp> → ( <rexp> )  UNION <rexp>
+<rexp> → <rexp-p>  UNION <rexp>
+
+<char-class> →  .  |  [ <char-set> ]  |  [ ^ <char-set> ]
+
+<char-set> → CLS_CHAR <char-set-p> |  <range> <char-set-p>
+<char-set-p> → CLS_CHAR <char-set-p> |  <range> <char-set-p> | ε
+
+<range> → CLS_CHAR - CLS_CHAR
+
+
+
+=================================
+Final token list:
+
+begin    BEGIN-TOKEN
+end      END-TOKEN
+ID ????
+:=
+;
+replace
+REGEX   ????
+with
+ASCII-STR ????
+in
+->
+print
+(
+)
+,
+INTNUM
+#
+find
++
+-
+*
+/
+union
+inters
+'
+RE_CHAR - see assignment
+?
+UNION - literal pipe character |
+CLS_CHAR - see assignment
+.
+[
+]
+^
