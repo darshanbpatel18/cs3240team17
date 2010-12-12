@@ -7,14 +7,17 @@ public class Token {
 	
 	private TokenType type;
 	private String value;
+	private int lineNumber;
 	
 	/**
 	 * @param type The type of this token.
 	 * @param value The value of the token text.
+	 * @param lineNumber The line the token was extracted from.
 	 */
-	public Token(TokenType type, String value){
+	public Token(TokenType type, String value, int lineNumber){
 		this.type = type;
 		this.value = value;
+		this.lineNumber = lineNumber;
 	}
 
 	/**
@@ -31,6 +34,12 @@ public class Token {
 		return value;
 	}
  
+	/**
+	 * @return Returns this token's line number.
+	 */
+	public int getLineNumber() {
+		return lineNumber;
+	}
 	
 }
 

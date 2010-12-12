@@ -26,14 +26,14 @@ public enum TokenType {
 	MINUS,		//-
 	STAR,		//*
 	FSLASH,		///
-	UNIION,		//union
+	UNION,		//union
 	INTERS,		//inters
 	SQUOTE,		//'
 	RECHAR,		//RE_CHAR
-	UNION,		//UNION
 	CLSCHAR, 	//CLS_CHAR
 	PERIOD,		//.
 	LBRACKET, 	//[
 	RBRACKET,	//]
-	CARROT		//^
+	CARROT,		//^
+	EOF			//End of File
 }
