@@ -169,7 +169,7 @@ public class Scanner {
 							valid = true;
 							keepLooking = false;
 							output.append(nextChar);
-							output.append(lookAhead);
+							output.append((char)lookAhead);
 							++colNumber;
 						}
 						else {
@@ -185,7 +185,7 @@ public class Scanner {
 							valid = true;
 							keepLooking = false;
 							output.append(nextChar);
-							output.append(lookAhead);
+							output.append((char)lookAhead);
 							++colNumber;
 						}
 						else if(!IsNumber(lookAhead)) {
@@ -208,7 +208,7 @@ public class Scanner {
 							tokenType = TokenType.INTNUM;
 						}			
 					}
-					else if(nextChar != ' ') {
+					else if(nextChar != ' ' && nextChar != '\r') {
 						scannerState = ScannerState.KEYWORD;
 						output.append(nextChar);
 						switch(nextChar) {
@@ -270,7 +270,21 @@ public class Scanner {
 						}
 						break;
 					case REGEX:
-						if(nextChar == '\'') {
+						if(nextChar == '\\') {
+							int lookAhead = inputFileReader.read();
+							if((char)lookAhead == '\'') {
+								output.append(nextChar);
+								output.append((char)lookAhead);
+								++colNumber;
+							}	
+							else {
+								if(lookAhead != -1) {
+									inputFileReader.unread(lookAhead);
+								}
+								output.append(nextChar);
+							}
+						}
+						else if(nextChar == '\'') {
 							valid = true;
 							keepLooking = false;
 						}
@@ -302,7 +316,7 @@ public class Scanner {
 						}
 						break;
 					case KEYWORD:
-						if(matchPos > matchStr.length) {
+						if(matchPos >= matchStr.length) {
 							if(tokenType == TokenType.IN && nextChar == 't') {
 								tokenType = TokenType.INTERS;
 								matchStr = new char[] {'e', 'r', 's'};
@@ -317,6 +331,7 @@ public class Scanner {
 						}
 						else if(nextChar == matchStr[matchPos]){
 							output.append(nextChar);
+							++matchPos;
 						}
 						else if(IsNumber(next) || IsLetter(next) || nextChar == '_') {
 							scannerState = ScannerState.ID;
@@ -336,16 +351,23 @@ public class Scanner {
 			if (valid){
 				nextTokenType = tokenType;
 				nextTokenValue = output.toString();
-				logFileWriter.write((nextTokenType.toString() + ": " + nextTokenValue + " at: " + lineNumber +", " +colNumber + "\n").getBytes()); 
+				logFileWriter.write((nextTokenType.toString() + ": " + nextTokenValue + " at: " + lineNumber +", " +colNumber +  System.getProperty( "line.separator" )).getBytes()); 
 			}
-			else if(next == -1 && scannerState == ScannerState.STARTED) {
-				nextTokenType = TokenType.EOF;
-				nextTokenValue = "$";
-				logFileWriter.write("End of file reached!".getBytes());
+			else if(next == -1){ 
+				if(scannerState == ScannerState.STARTED) {			
+					nextTokenType = TokenType.EOF;
+					nextTokenValue = "$";
+					logFileWriter.write("End of file reached!".getBytes());
+				}
+				else if(tokenType == TokenType.END && matchPos >= matchStr.length){
+					nextTokenType = tokenType;
+					nextTokenValue = output.toString();
+					logFileWriter.write((nextTokenType.toString() + ": " + nextTokenValue + " at: " + lineNumber +", " +colNumber +  System.getProperty( "line.separator" )).getBytes()); 
+				}
 			}
 			else {
-				String error = "Unexpected character found: " + (char)next + " at: "+ lineNumber +", " +colNumber;
-				logFileWriter.write(( error + "\n" ).getBytes());
+				String error = "Unexpected character found: " + (char)next + "(" + next +") at: "+ lineNumber +", " +colNumber;
+				logFileWriter.write(( error +  System.getProperty( "line.separator" )).getBytes());
 				ScanException ex = new ScanException(error);
 				ex.fillInStackTrace();
 				throw ex;
